@@ -156,6 +156,7 @@ void reactor_stop(struct Reactor *reactor)
         }
     }
     reactor_destroy(reactor);
+  
 }
 
 int reactor_review(struct Reactor *reactor)

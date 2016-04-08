@@ -12,6 +12,8 @@ static inline ssize_t write_wrapper(int fd, const void *buf, size_t count)
 {
     ssize_t s;
     if ((s = write(fd, buf, count)) < count) perror("write");
+    // printf("write_wrapper\n");
+
     return s;
 }
 #undef write
@@ -30,6 +32,7 @@ static void *join_thread(pthread_t thr)
 {
     void *ret;
     pthread_join(thr, &ret);
+    // printf("join_thread\n");
     return ret;
 }
 
@@ -37,6 +40,7 @@ static int create_thread(pthread_t *thr,
                          void *(*thread_func)(void *),
                          void *async)
 {
+    // printf("create_thread\n");
     return pthread_create(thr, NULL, thread_func, async);
 }
 
@@ -74,6 +78,7 @@ struct Async {
 
 static int async_run(async_p async, void (*task)(void *), void *arg)
 {
+    // printf("async_run\n");
     struct AsyncTask *c;  /* the container, storing the task */
 
     if (!async || !task) return -1;
@@ -113,6 +118,7 @@ static int async_run(async_p async, void (*task)(void *), void *arg)
 /** Performs all the existing tasks in the queue. */
 static void perform_tasks(async_p async)
 {
+    // printf("perform_tasks\n");
     struct AsyncTask *c = NULL;  /* c == container, will store the task */
     do {
         /* grab a task from the queue. */
@@ -138,6 +144,7 @@ static void perform_tasks(async_p async)
 /* The worker cycle */
 static void *worker_thread_cycle(void *_async)
 {
+    // printf("worker_thread_cycle\n");
     /* setup signal and thread's local-storage async variable. */
     struct Async *async = _async;
     char sig_buf;
@@ -156,6 +163,7 @@ static void *worker_thread_cycle(void *_async)
 
 static void async_signal(async_p async)
 {
+    // printf("async_signal\n");
     async->run = 0;
     /* send `async->count` number of wakeup signales.
      * data content is irrelevant. */
@@ -164,6 +172,7 @@ static void async_signal(async_p async)
 
 static void async_wait(async_p async)
 {
+    // printf("async_wait\n");
     if (!async) return;
 
     /* wake threads (just in case) by sending `async->count`
@@ -183,6 +192,7 @@ static void async_wait(async_p async)
 
 static void async_finish(async_p async)
 {
+    // printf("async_finish\n");
     async_signal(async);
     async_wait(async);
 }
@@ -192,6 +202,7 @@ static void async_finish(async_p async)
 /** Destroys the Async object, releasing its memory. */
 static void async_destroy(async_p async)
 {
+    // printf("async_destroy\n");
     pthread_mutex_lock(&async->lock);
     struct AsyncTask *to_free;
     async->pos = NULL;
@@ -225,6 +236,7 @@ static void async_destroy(async_p async)
 
 static async_p async_create(int threads)
 {
+    // printf("async_create\n");
     async_p async = malloc(sizeof(*async) + (threads * sizeof(pthread_t)));
     async->tasks = NULL;
     async->pool = NULL;
